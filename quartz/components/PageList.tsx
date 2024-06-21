@@ -30,6 +30,7 @@ type Props = {
 } & QuartzComponentProps
 
 export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit }: Props) => {
+  let disableDateListing = fileData.frontmatter?.disableDateListing ?? false;
   let list = allFiles.sort(byDateAndAlphabetical(cfg))
   if (limit) {
     list = list.slice(0, limit)
@@ -46,7 +47,9 @@ export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit }: Pr
             <div class="section">
               {page.dates && (
                 <p class="meta">
-                  <Date date={getDate(cfg, page)!} locale={cfg.locale} />
+                  {!disableDateListing && (
+                    <Date date={getDate(cfg, page)!} locale={cfg.locale} />
+                  )}
                 </p>
               )}
               <div class="desc">
