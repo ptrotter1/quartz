@@ -25,14 +25,46 @@ export function byDateAndAlphabetical(cfg: GlobalConfiguration): SortFn {
   }
 }
 
+export function bySortOrderThenDateThenAlphabetical(
+	cfg: GlobalConfiguration,
+  ): (f1: QuartzPluginData, f2: QuartzPluginData) => number {
+	return (f1, f2) => {
+	  if (f1.frontmatter?.sortOrder && f2.frontmatter?.sortOrder) {
+		  var f2Sort = f2.frontmatter?.sortOrder;
+		  var f1Sort = f1.frontmatter?.sortOrder;	
+		  // sort ascending
+		  return f1Sort - f2Sort;
+	  } else if (f1.frontmatter?.sortOrder && !f2.frontmatter?.sortOrder) {
+		  return 1;
+	  } else if (!f1.frontmatter?.sortOrder && f2.frontmatter?.sortOrder) {
+		  return -1;
+	  }
+  
+	  if (f1.dates && f2.dates) {
+		// sort descending
+		return getDate(cfg, f2)!.getTime() - getDate(cfg, f1)!.getTime()
+	  } else if (f1.dates && !f2.dates) {
+		// prioritize files with dates
+		return -1
+	  } else if (!f1.dates && f2.dates) {
+		return 1
+	  }
+  
+	  // otherwise, sort lexographically by title
+	  const f1Title = f1.frontmatter?.title.toLowerCase() ?? ""
+	  const f2Title = f2.frontmatter?.title.toLowerCase() ?? ""
+	  return f1Title.localeCompare(f2Title)
+	}
+  }
+
 type Props = {
   limit?: number
   sort?: SortFn
 } & QuartzComponentProps
 
-export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit, sort }: Props) => {
-  const sorter = sort ?? byDateAndAlphabetical(cfg)
-  let list = allFiles.sort(sorter)
+export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit }: Props) => {
+  let disableDateListing = fileData.frontmatter?.disableDateListing ?? false;
+  let list = allFiles.sort(bySortOrderThenDateThenAlphabetical(cfg))
   if (limit) {
     list = list.slice(0, limit)
   }
@@ -48,7 +80,9 @@ export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit, sort
             <div class="section">
               {page.dates && (
                 <p class="meta">
-                  <Date date={getDate(cfg, page)!} locale={cfg.locale} />
+                  {!disableDateListing && (
+                    <Date date={getDate(cfg, page)!} locale={cfg.locale} />
+                  )}
                 </p>
               )}
               <div class="desc">

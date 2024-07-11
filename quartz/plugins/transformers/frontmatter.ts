@@ -93,6 +93,9 @@ declare module "vfile" {
         lang: string
         enableToc: string
         cssclasses: string[]
+        disableDateListing: boolean
+		    disablePageListing: boolean
+		    sortOrder: number
       }>
   }
 }
